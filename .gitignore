@@ -1,0 +1,18 @@
+# Prevedene klase / build izlaz
+bin/
+out/
+target/
+*.class
+
+# Eclipse workspace smece
+.metadata/
+
+# Testni fajlovi koje program pravi u toku rada
+/test.csv
+/test.json
+/podaci.csv
+/podaci.json
+
+# OS
+.DS_Store
+Thumbs.db
