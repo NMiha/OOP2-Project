@@ -23,6 +23,7 @@ public class InactivityTimer {
 	private AWTEventListener awtListener;
 	private int remaining;
 	private boolean warning;
+	private boolean paused;				
 	
 	public InactivityTimer(int timeoutSeconds, int warningSeconds, Listener listener) {
         this.timeoutSeconds = timeoutSeconds;
@@ -60,7 +61,7 @@ public class InactivityTimer {
     }
 
     public void notifyActivity() {
-        if (!warning) {
+        if (!paused && !warning) {  
             remaining = timeoutSeconds;
         }
     }
@@ -72,6 +73,7 @@ public class InactivityTimer {
     }
 
     private void tick() {
+    	if (paused) return;          
         remaining--;
         if (remaining <= 0) {
             stop();
@@ -83,6 +85,16 @@ public class InactivityTimer {
             listener.onCountdown(remaining);
         }
     }
+    
+  
+    public void pause() {
+        paused = true;
+    }
 
+    public void resume() {
+        paused = false;
+        warning = false;
+        remaining = timeoutSeconds;
+    }
 
 }

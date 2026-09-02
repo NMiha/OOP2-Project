@@ -44,6 +44,7 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
 
     private InactivityTimer timer;
     private CountdownDialog countdownDialog;
+    private MapFrame mapFrame;
 
     public MainFrame() {
         super("Aerodromi i letovi");
@@ -66,7 +67,7 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
         setupTimer();
     }
 
-    /* --------- izgradnja UI --------- */
+    /* --------- Izgradnja UI --------- */
 
     private JPanel buildInputArea() {
         JPanel area = new JPanel(new GridLayout(1, 2, 12, 0));
@@ -138,10 +139,22 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
     private JPanel buildButtonArea() {
         JPanel area = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
         JButton clear = new JButton("Obrisi sve");
+        JButton showMap = new JButton("Prikazi mapu");
+        showMap.addActionListener(e -> onShowMap());
         clear.addActionListener(e -> { manager.clear(); refreshAll(); });
+        area.add(showMap);
         area.add(clear);
         // Faza B: ovde ce doci i dugme "Prikazi mapu"
         return area;
+    }
+    
+    private void onShowMap() {
+        if (mapFrame == null || !mapFrame.isShowing()) {
+            mapFrame = new MapFrame(manager, timer);
+            mapFrame.setVisible(true);
+        } else {
+            mapFrame.toFront();
+        }
     }
     
     private JMenuBar buildMenuBar() {
@@ -168,7 +181,7 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
         return bar;
     }
 
-    /* --------- akcije --------- */
+    /* --------- Akcije --------- */
 
     private void onAddAirport() {
         try {
@@ -219,7 +232,7 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
         }
     }
 
-    /* --------- osvezavanje --------- */
+    /* --------- Osvezavanje --------- */
 
     private void refreshAll() {
         airportsModel.setRowCount(0);
@@ -232,6 +245,7 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
                     f.durationMinutes(),
                     TimeUtil.arrivalHm(f.departureHour(), f.departureMinute(), f.durationMinutes())});
         refreshChoices();
+        if (mapFrame != null && mapFrame.isShowing()) mapFrame.refreshData();
     }
 
     private void refreshChoices() {
@@ -247,23 +261,33 @@ public class MainFrame extends JFrame implements InactivityTimer.Listener {
         if (pd != null) flightDestination.setSelectedItem(pd);
     }
 
-    /* --------- tajmer --------- */
+    /* --------- Tajmer --------- */
 
     private void setupTimer() {
         timer = new InactivityTimer(60, 5, this);
-        countdownDialog = new CountdownDialog(this, () -> timer.continueWorking());
+        countdownDialog = new CountdownDialog(() -> timer.continueWorking());
         timer.start();
     }
-
+    
     public void onCountdown(int secondsLeft) {
         countdownDialog.setSecondsLeft(secondsLeft);
-        if (!countdownDialog.isVisible()) countdownDialog.showCentered(this);
+        if (!countdownDialog.isVisible()) {
+            Frame anchor;
+            if (mapFrame != null && mapFrame.isShowing()) {
+                anchor = mapFrame;      // mapa otvorena -> centriraj nad mapom
+            } else {
+                anchor = this;          // inace -> nad glavnim prozorom
+            }
+            countdownDialog.showCentered(anchor);
+        }
     }
+    
     public void onExpire() { shutdown(); }
     public void onContinue() { countdownDialog.setVisible(false); }
 
     private void shutdown() {
         if (timer != null) timer.stop();
+        if (mapFrame != null) mapFrame.closeMap();
         dispose();
         System.exit(0);
     }

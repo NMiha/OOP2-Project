@@ -18,8 +18,8 @@ public class CountdownDialog extends JDialog {
 
     private final JLabel countdownLabel;
 
-    public CountdownDialog(Frame owner, Runnable onContinue) {
-        super(owner, "Neaktivnost", false);   // false = NIJE modalan
+    public CountdownDialog(Runnable onContinue) {
+        super((Frame)null, "Neaktivnost", false);   // false = NIJE modalan
         setAlwaysOnTop(true);
         setLayout(new BorderLayout(10, 10));
 
